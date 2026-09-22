@@ -1,6 +1,7 @@
 node_modules/
 .tools/
 dist/
+dist-*/
 out/
 release/
 .turbo/
