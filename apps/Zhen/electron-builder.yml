@@ -1,5 +1,7 @@
 appId: com.zhenhai.zhen
 productName: ZhenHaiHM
+extraMetadata:
+  name: cs2-observerui-ncepu
 directories:
   buildResources: build
 files:
@@ -55,7 +57,7 @@ appImage:
 npmRebuild: false
 publish:
   provider: github
-  owner: nsnsay
-  repo: ZhenHai-HUD-Manager
+  owner: Ayomeys
+  repo: CS2_ObserverUI_NCEPU
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/

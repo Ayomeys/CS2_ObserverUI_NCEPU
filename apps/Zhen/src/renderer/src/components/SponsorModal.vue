@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import sponsorUrl from "../assets/sponsor.jpg";
-
 const open = defineModel<boolean>("open", { default: false });
 </script>
 
 <template>
   <UModal
     v-model:open="open"
-    title="Support ZhenHai"
-    description="If ZhenHai helps your streams and broadcasts, a small WeChat tip would be appreciated."
+    title="关于本导播UI程序"
+    description="华北电力大学 CS2 导播 UI 说明"
     :dismissible="true"
     :close="true"
     :ui="{
@@ -18,16 +16,22 @@ const open = defineModel<boolean>("open", { default: false });
     }"
   >
     <template #body>
-      <div class="flex flex-col items-center gap-4 bg-elevated/30 p-6">
-        <div class="overflow-hidden rounded-lg bg-white p-2 shadow-lg ring-1 ring-black/10">
-          <img
-            :src="sponsorUrl"
-            alt="WeChat donation QR code"
-            class="block h-64 w-64 object-contain"
-          />
-        </div>
-        <p class="max-w-xs text-center text-sm leading-6 text-muted">
-          Scan the QR code with WeChat to support the development of ZhenHai HUD Manager.
+      <div class="bg-elevated/30 p-6">
+        <p class="text-sm leading-7 text-muted">
+          这是一个由 @NocYnTwoC 开发的 CS2 导播 UI 程序，本人对该 UI
+          程序进行了部分调整，使其更适合华北电力大学的 CSer 使用。未来如有学弟想承办华电
+          Major，可使用该 UI 程序进行导播。
+        </p>
+        <p class="mt-4 text-sm leading-7 text-muted">
+          原作者仓库链接：
+          <a
+            class="text-primary underline underline-offset-4"
+            href="https://github.com/nsnsay/Zhenhai-HUD-Manager"
+            target="_blank"
+            rel="noreferrer"
+          >
+            https://github.com/nsnsay/Zhenhai-HUD-Manager
+          </a>
         </p>
       </div>
     </template>
