@@ -43,6 +43,7 @@
     "steam-game-path": "^3.0.2",
     "typescript": "^6.0.3",
     "utf-8-validate": "^6.0.6",
+    "ws": "^8.21.3",
     "vue-i18n": "^11",
     "vue-tsc": "^3.3.7"
   },
