@@ -21,6 +21,10 @@ files:
   - "!node_modules/lightningcss-win32-x64-msvc/**/*"
   - "!node_modules/bufferutil/**/*"
   - "!node_modules/utf-8-validate/**/*"
+  - from: resources/native
+    to: node_modules/registry-js/build/Release
+    filter:
+      - registry.node
 extraResources:
   - from: resources/overlay
     to: overlay
@@ -28,10 +32,9 @@ extraResources:
     to: gamestate_integration_zhenhai.cfg
   - from: resources/overlays
     to: overlays
-  - from: resources/native/registry.node
-    to: app.asar.unpacked/node_modules/registry-js/build/Release/registry.node
 asarUnpack:
   - resources/**
+  - node_modules/registry-js/build/Release/registry.node
 win:
   executableName: zhen
 nsis:
