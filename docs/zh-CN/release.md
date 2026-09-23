@@ -13,7 +13,7 @@ bun run build        # apps/Hai build -> apps/Zhen build:win
 | 步骤 | 命令 | 产物 |
 | --- | --- | --- |
 | 1 | `bun run --cwd apps/Hai build` | Overlay 构建输出到 `apps/Zhen/resources/overlay`（类型检查 + Vite 构建） |
-| 2 | `bun run --cwd apps/Zhen version:patch` | 递增 `apps/Zhen/package.json` 的补丁版本号（属于 `build:win` 的一环） |
+| 2 | 设置 `apps/Zhen/package.json` 的 `version` | 构建直接使用该版本号；需要时可单独运行 `bun run --cwd apps/Zhen version:patch` |
 | 3 | `bun run --cwd apps/Zhen build` | `typecheck` → `electron-vite build` → `pack:overlay` |
 | 4 | `electron-builder --win` | 在 `apps/Zhen/dist` 生成 NSIS 安装包（electron-builder 的输出目录；`--dir` 输出到 `apps/Zhen/dist/win-unpacked`） |
 
@@ -26,12 +26,12 @@ bun run build        # apps/Hai build -> apps/Zhen build:win
 | 配置 | 值 |
 | --- | --- |
 | 应用 id | `com.zhenhai.zhen` |
-| 产品名 | `ZhenHaiHM` |
-| Windows 可执行文件 | `zhen` |
-| 安装包产物 | `Zhenhai-<version>-setup.exe`（NSIS，桌面快捷方式名为 `ZhenHai`） |
+| 产品名 | `ObserverUI` |
+| Windows 可执行文件 | `ObserverUI.exe` |
+| 安装包产物 | `ObserverUI-<version>-setup.exe`（NSIS，桌面快捷方式名为 `ObserverUI`） |
 | extraResources | `resources/overlay` → `overlay`、`resources/overlays` → `overlays`、`resources/gamestate_integration_zhenhai.cfg` → `gamestate_integration_zhenhai.cfg` |
 | asar 解包 | `resources/**`，保证 GSI 配置与 Overlay 文件在磁盘上可直接读取 |
-| 更新源 | GitHub，`nsnsay/ZhenHai-HUD-Manager` |
+| 更新源 | GitHub，`Ayomeys/CS2_ObserverUI_NCEPU` |
 | Electron 下载镜像 | `https://npmmirror.com/mirrors/electron/` |
 
 由于 `resources/overlay` 与 GSI 配置放在 `extraResources` 中，安装后的目录结构会把它们保留在 asar 之外，同时仍然随应用一起分发。
@@ -45,7 +45,7 @@ bun run build        # apps/Hai build -> apps/Zhen build:win
 ## 发布检查清单
 
 1. 确认工作区干净且单元测试通过（`bun run --cwd apps/Zhen test`）。
-2. 在 Windows 上执行 `bun run build` 生成安装包（版本号会自动递增）。
+2. 确认 `apps/Zhen/package.json` 中的版本号后，在 Windows 上执行 `bun run build` 生成安装包。
 3. 验证安装包：GSI 配置能安装、Overlay 能在 `/overlay/` 打开、`dist/zhenhai-default-<version>.zip` 可导入、原有 Overlay 仍在列表中。
-4. 为该 tag 创建 GitHub Release 并附上 `Zhenhai-<version>-setup.exe`；发布配置与本仓库匹配，`electron-builder` 也可以直接上传。
+4. 为该 tag 创建 GitHub Release 并附上 `ObserverUI-<version>-setup.exe`；发布配置与本仓库匹配，`electron-builder` 也可以直接上传。
 5. 已安装客户端会通过更新器获取该版本，先显示下载进度条，再提供重启安装的入口。

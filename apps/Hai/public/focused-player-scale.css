@@ -445,11 +445,13 @@
 
 .focused-panel .focused-player-portrait {
   position: absolute !important;
+  scale: 1.6 !important;
+  transform-origin: left bottom !important;
   z-index: 0 !important;
-  top: -23px !important;
+  top: 37px !important;
   right: auto !important;
   bottom: 0 !important;
-  left: 12px !important;
+  left: -60px !important;
   width: 156px !important;
   min-width: 156px !important;
   height: auto !important;
@@ -519,15 +521,15 @@
   z-index: 6 !important;
   top: auto !important;
   right: 20px !important;
-  bottom: 12px !important;
+  bottom: 56px !important;
   left: auto !important;
   display: flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
   gap: 4px !important;
   color: #fff;
-  font-size: 16px !important;
-  scale: 1.5 !important;
+  font-size: 14px !important;
+  scale: 1.1 !important;
   transform-origin: right bottom !important;
 }
 
@@ -576,11 +578,11 @@
 
 .focused-panel > div:nth-child(3) > .grenades {
   position: absolute !important;
-  top: 41px !important;
+  top: 71px !important;
   right: 0 !important;
-  width: 72px !important;
-  height: 14px !important;
-  overflow: hidden !important;
+  width: 96px !important;
+  height: 24px !important;
+  overflow: visible !important;
 }
 
 .focused-panel .focused-grenade-count {

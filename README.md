@@ -1,4 +1,4 @@
-# Zhen-Hai HUD Manager
+# ObserverUI_NCEPU for CS2
 
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-informational)
 ![Bun](https://img.shields.io/badge/bun-1.3.14-black)
@@ -7,14 +7,17 @@
 
 [English](./README.md) | [简体中文](./README_ZH.md)
 
-> Previously known as **Void HUD Manager**, the project has been fully rebuilt and officially renamed to **Zhen-Hai HUD Manager**.
-> The name "Zhenhai" (Chinese: 镇海) is inspired by the Zhan'ao Pagoda in Haining, Zhejiang, China.
+> Previously known as **Void HUD Manager**, this edition has been customized for NCEPU and renamed **ObserverUI_NCEPU**.
+
 
 ## Introduction
 
-Zhen-Hai HUD Manager is a HUD management tool for Counter-Strike esports broadcasts. It manages tournaments, teams, players and matches, enriches the live game state coming from CS2, and serves the on-air HUD to OBS or vMix.
+ObserverUI_NCEPU is a HUD management tool for Counter-Strike esports broadcasts tailored to CS2 players at North China Electric Power University (NCEPU). It manages tournaments, teams, players and matches, enriches the live game state coming from CS2, and serves the on-air HUD to OBS or vMix.
 
-Compared with the legacy Void HUD Manager, this rebuild changes the architecture, the interface and the operating flow: the former two-repository setup (`Void-HUD-Manager` + `Void-HUD-Overlay`) became a single Turborepo workspace, the code base was reorganised for maintainability, and the tournament, team, player and match workflows were redesigned.
+> [!IMPORTANT]
+> **NCEPU CS2 Edition · Ayomeys**
+>
+> This repository builds on the CS2 broadcast UI developed by @NocYnTwoC. Ayomeys has adjusted parts of the UI to create an edition tailored for CS2 players at North China Electric Power University (NCEPU). If future students organise a “NCEPU Major,” they can use this program to produce the broadcast. Original author's repository: [Zhenhai-HUD-Manager](https://github.com/nsnsay/Zhenhai-HUD-Manager).
 
 ## Documentation
 
@@ -64,7 +67,7 @@ Packaged builds update themselves through GitHub Releases and show download prog
 
 ## Quick Start
 
-1. **Download and install** the latest `Zhenhai-<version>-setup.exe` from the Releases page.
+1. **Download and install** the latest `ObserverUI-<version>-setup.exe` from the Releases page.
 2. **Run the app** and finish the Setup Wizard: confirm the CS2 installation folder, install the GSI configuration and pick a window material.
 3. **Add your data** in order — players, teams, matches — then set the match you are about to broadcast to **Live**.
 4. **Start CS2.** The HUD starts receiving data as soon as the game sends GSI updates.

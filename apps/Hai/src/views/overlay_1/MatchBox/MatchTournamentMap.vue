@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { GameState, MapPickDecider, MapPickVeto, MapVeto } from '@zhenhai/csgogsi/types'
+import { normalizeMapName } from '@/utils/mapName'
 
 const props = defineProps<{
   gsi: GameState
@@ -19,11 +20,11 @@ const selectedMaps = computed<(MapPickVeto | MapPickDecider)[]>(() => {
 })
 
 function mapBackground(mapName: string): string {
-  return `./background/${mapName}.png`
+  return `./background/${normalizeMapName(mapName)}.png`
 }
 
 function displayMapName(mapName: string): string {
-  return mapName.replace(/^de_/, '').replace(/_/g, ' ')
+  return normalizeMapName(mapName).replace(/^de_/, '').replace(/_/g, ' ')
 }
 
 function formatScore(a: number, b: number): string {

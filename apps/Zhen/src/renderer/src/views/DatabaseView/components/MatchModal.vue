@@ -46,6 +46,7 @@ const mapItems: OptionItem[] = [
   { label: "Nuke", value: "de_nuke" },
   { label: "Train", value: "de_train" },
   { label: "Overpass", value: "de_overpass" },
+  { label: "Cache", value: "de_cache" },
 ];
 
 const vetoTypeItems: OptionItem[] = [
@@ -167,13 +168,12 @@ function createDefaultMatchData(): MatchsInfo {
 const matchData = ref<MatchsInfo>(createDefaultMatchData());
 const editId = ref<string | null>(null);
 
-watch(
-  () => matchData.value.matchLength,
-  (newBO) => {
-    if (newBO)
-      matchData.value.matchVeto = generateVetoStructure(newBO as number) as MatchsInfo["matchVeto"];
-  },
-);
+function handleBestOfChange(value: unknown) {
+  if (typeof value !== "number" && typeof value !== "string") return;
+  const bo = Number(value);
+  if (!Number.isInteger(bo) || bo < 1 || bo > 5) return;
+  matchData.value.matchVeto = generateVetoStructure(bo) as MatchsInfo["matchVeto"];
+}
 
 function openEdit(match: MatchRecord) {
   editId.value = match.id;
@@ -320,6 +320,7 @@ async function handleSubmit(close: () => void) {
         <UFormField label="Best Of" name="Best Of">
           <USelect
             v-model="matchData.matchLength as number"
+            @update:model-value="handleBestOfChange"
             :items="bestOfItems"
             value-key="value"
             class="w-48"

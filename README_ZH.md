@@ -1,4 +1,4 @@
-# Zhen-Hai HUD Manager
+# ObserverUI_NCEPU for CS2
 
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-informational)
 ![Bun](https://img.shields.io/badge/bun-1.3.14-black)
@@ -7,14 +7,19 @@
 
 [English](./README.md) | [简体中文](./README_ZH.md)
 
-> 前身为 **Void HUD Manager**，现已全面重构并正式更名为 **Zhen-Hai HUD Manager**。
-> “镇海（ZhenHai）”一名源自中国浙江海宁的占鳌塔。
+> 前身为 **Void HUD Manager**，现已针对NCEPU做了特色化修改并正式更名为 **ObserverUI_NCEPU**。
+
 
 ## 简介
 
-Zhen-Hai HUD Manager 是一款面向 CS 赛事直播场景的 HUD 管理工具：管理赛事、队伍、玩家与比赛数据，增强来自 CS2 的实时比赛状态，并把直播画面上使用的 HUD 提供给 OBS 或 vMix。
+ObserverUI_NCEPU 是一款面向华电cser的 CS 赛事直播场景的 HUD 管理工具：管理赛事、队伍、玩家与比赛数据，增强来自 CS2 的实时比赛状态，并把直播画面上使用的 HUD 提供给 OBS 或 vMix。
 
-相较于旧版 Void HUD Manager，本次重构在架构、界面与操作流程上都有较大改进：原先的 `Void-HUD-Manager` 与 `Void-HUD-Overlay` 双仓库合并为单一 Turborepo 工作区，代码结构按可维护性重新组织，赛事、队伍、玩家与比赛的使用流程也做了重新设计。
+> [!IMPORTANT]
+> **NCEPU cser 专属改进版 · Ayomeys**
+>
+> 本仓库基于 @NocYnTwoC 开发的 CS2 导播 UI 程序。Ayomeys 对部分 UI 进行了调整，形成专为华北电力大学 CS2 玩家（NCEPU cser）改进的版本。未来若有学弟承办“华电 Major”，也可以使用本程序进行赛事导播。原作者仓库：[Zhenhai-HUD-Manager](https://github.com/nsnsay/Zhenhai-HUD-Manager)。
+
+
 
 ## 文档导航
 
@@ -64,7 +69,7 @@ Zhen-Hai HUD Manager 是一款面向 CS 赛事直播场景的 HUD 管理工具�
 
 ## 快速开始
 
-1. 从 Release 页面下载并安装最新的 `Zhenhai-<version>-setup.exe`。
+1. 从 Release 页面下载并安装最新的 `ObserverUI-<version>-setup.exe`。
 2. 运行应用并完成初始化向导：确认 CS2 安装目录、安装 GSI 配置、选择窗口材质。
 3. 依次添加数据——玩家、队伍、比赛，然后把即将直播的比赛设置为 **Live**。
 4. 启动 CS2。游戏开始发送 GSI 数据后，HUD 即可收到内容。

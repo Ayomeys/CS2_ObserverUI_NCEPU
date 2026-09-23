@@ -12,6 +12,7 @@ import type {
   Side,
 } from '@zhenhai/csgogsi/types'
 import { useGsiEvent } from '@zhenhai/csgogsi/gsi-vue'
+import { normalizeMapName } from '@/utils/mapName'
 import maps, { type MapConfig, type ZoomAreas } from './utils/maps'
 import RadarCanvas from './RadarCanvas.vue'
 import {
@@ -128,7 +129,7 @@ const containerStyle = computed(() => ({
   height: `${props.size}px`,
 }))
 
-const mapName = computed(() => props.data?.map?.name || '')
+const mapName = computed(() => normalizeMapName(props.data?.map?.name || ''))
 
 watch(mapName, () => {
   resetStates()

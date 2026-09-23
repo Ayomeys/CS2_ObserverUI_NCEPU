@@ -1,5 +1,5 @@
 appId: com.zhenhai.zhen
-productName: ZhenHaiHM
+productName: ObserverUI
 extraMetadata:
   name: cs2-observerui-ncepu
 directories:
@@ -36,11 +36,11 @@ asarUnpack:
   - resources/**
   - node_modules/registry-js/build/Release/registry.node
 win:
-  executableName: zhen
+  executableName: ObserverUI
 nsis:
-  artifactName: Zhenhai-${version}-setup.${ext}
-  shortcutName: ZhenHai
-  uninstallDisplayName: ZhenHai
+  artifactName: ObserverUI-${version}-setup.${ext}
+  shortcutName: ObserverUI
+  uninstallDisplayName: ObserverUI
   createDesktopShortcut: always
 mac:
   entitlementsInherit: build/entitlements.mac.plist

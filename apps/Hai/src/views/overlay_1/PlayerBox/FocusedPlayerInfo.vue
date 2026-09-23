@@ -32,7 +32,7 @@ const avatar = computed(() => {
 <template>
   <div class="flex flex-col w-72">
     <PlayerAvatar
-      custom-class-name="relative flex items-center justify-center w-full h-full aspect-video bg-pri/40 rounded-t-(--hai-radius) rounded-b-none"
+      custom-class-name="focused-player-portrait relative flex items-center justify-center w-full h-full aspect-video bg-pri/40 rounded-t-(--hai-radius) rounded-b-none"
       :player="player"
       size="height"
     />
@@ -43,8 +43,12 @@ const avatar = computed(() => {
     >
       <HealthBar :player="player" direction="left-right" border-radius-for-focused-player />
       <TeamAvatar :team="player.team" size="imageSize" image-size="24px" />
-      <div class="font-semibold text-center">{{ player?._db?.playerName || player.name }}</div>
-      <div v-if="player?.activeweapon" class="flex flex-row items-center justify-end gap-1">
+      <div class="focused-player-id font-semibold text-center">{{ player?._db?.playerName || player.name }}</div>
+      <div class="focused-player-record">
+        <span>K {{ player.stats.kills }}</span>
+        <span>D {{ player.stats.deaths }}</span>
+      </div>
+      <div v-if="player?.activeweapon" class="focused-player-ammo flex flex-row items-center justify-end gap-1">
         <div
           v-if="!['Grenade', 'Knife', 'C4', undefined].includes(player?.activeweapon?.type)"
           class="font-extrabold"

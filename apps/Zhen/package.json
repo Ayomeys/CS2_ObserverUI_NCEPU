@@ -1,6 +1,6 @@
 {
   "name": "@zhenhai/zhen",
-  "version": "2.0.10",
+  "version": "1.0.0",
   "private": true,
   "description": "An Electron application with Vue and TypeScript",
   "homepage": "https://electron-vite.org",
@@ -21,7 +21,7 @@
     "postinstall": "electron-builder install-app-deps",
     "version:patch": "node scripts/bump-version.js",
     "build:unpack": "bun run build && electron-builder --dir",
-    "build:win": "bun run version:patch && bun run build && electron-builder --win",
+    "build:win": "bun run build && electron-builder --win",
     "build:mac": "bun run build && electron-builder --mac",
     "build:linux": "bun run build && electron-builder --linux"
   },
