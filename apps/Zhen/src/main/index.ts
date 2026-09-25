@@ -23,6 +23,8 @@ import { registerLoggerIpc } from "./ipc/logger.ipc";
 import { updateService } from "./services/update.service";
 import { registerUpdateIpc } from "./ipc/update.ipc";
 import { overlayService } from "./services/overlay.service";
+import { directorMapService } from "./services/director-map.service";
+import { registerDirectorMapIpc } from "./ipc/director-map.ipc";
 import { DEFAULT_SHORTCUTS, type ShortcutBindings } from "../shared/shortcuts";
 import type { WindowMaterial } from "../shared/ipc";
 
@@ -33,6 +35,7 @@ interface StoredAppSettings {
   windowMaterial?: unknown;
   overlayRefreshShortcut?: string;
   overlayMouseToggleShortcut?: string;
+  directorMapToggleShortcut?: string;
   allowLanAccess?: unknown;
 }
 
@@ -56,6 +59,8 @@ function resolveShortcutBindings(settings: StoredAppSettings | null): ShortcutBi
     overlayRefresh: settings?.overlayRefreshShortcut?.trim() || DEFAULT_SHORTCUTS.overlayRefresh,
     overlayToggleMouseEvents:
       settings?.overlayMouseToggleShortcut?.trim() || DEFAULT_SHORTCUTS.overlayToggleMouseEvents,
+    directorMapToggle:
+      settings?.directorMapToggleShortcut?.trim() || DEFAULT_SHORTCUTS.directorMapToggle,
   };
 }
 
@@ -133,6 +138,7 @@ app.whenReady().then(async () => {
   gsiPipeline.use(createMatchEnricher(dbService));
   gsiPipeline.use(createSettingsEnricher(dbService));
   gsiService.setPipeline(gsiPipeline);
+  directorMapService.init(gsiService);
 
   overlayService.init({
     onLifecycle: (state) => {
@@ -149,6 +155,7 @@ app.whenReady().then(async () => {
   registerDatabaseIpc(dbService);
   registerFileIpc(fileService);
   registerShortcutIpc();
+  registerDirectorMapIpc();
   registerAppIpc();
   registerOverlayIpc({ dbService, getMainWindow: () => mainWindow });
 
@@ -159,6 +166,9 @@ app.whenReady().then(async () => {
   });
   shortcutService.setHandler("overlayToggleMouseEvents", () => {
     overlayService.toggleIgnoreMouseEvents();
+  });
+  shortcutService.setHandler("directorMapToggle", () => {
+    directorMapService.toggle();
   });
   shortcutService.register(resolveShortcutBindings(settings));
 

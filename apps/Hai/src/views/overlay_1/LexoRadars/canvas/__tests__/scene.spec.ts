@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import {
   MOTION_POSITION_MS,
+  MOTION_POSITION_MAX_MS,
+  MOTION_POSITION_MIN_MS,
   SHOOT_WINDOW_MS,
   colorFromVars,
   containSize,
@@ -404,18 +406,18 @@ describe('角度与插值', () => {
     expect(hasPendingMotion(NOW)).toBe(false)
   })
 
-  it('目标变化后按缓出插值到新位置', () => {
+  it('目标变化后匀速移动到新位置', () => {
     sampleMotion('p1', baseSample, NOW)
     sampleMotion('p1', { ...baseSample, x: 100 }, NOW)
 
     // 刚变化时还在原点
     expect(sampleMotion('p1', { ...baseSample, x: 100 }, NOW).x).toBeCloseTo(0, 6)
 
-    // 走到一半时长：缓出已经推进 87.5%
+    // 走到一半时长：位置正好走完一半
     const half = NOW + MOTION_POSITION_MS / 2
     const mid = sampleMotion('p1', { ...baseSample, x: 100 }, half)
 
-    expect(mid.x).toBeCloseTo(87.5, 6)
+    expect(mid.x).toBeCloseTo(50, 6)
     expect(hasPendingMotion(half)).toBe(true)
 
     // 时长走完就是目标值，且不再需要跑帧
@@ -423,6 +425,24 @@ describe('角度与插值', () => {
 
     expect(sampleMotion('p1', { ...baseSample, x: 100 }, settled).x).toBeCloseTo(100, 6)
     expect(hasPendingMotion(settled)).toBe(false)
+  })
+
+  it('位置插值时长跟随实际数据间隔，并限制极端间隔', () => {
+    sampleMotion('p1', baseSample, NOW)
+    sampleMotion('p1', { ...baseSample, x: 120 }, NOW + 120)
+
+    expect(entityMotions.p1?.x.duration).toBe(120)
+    expect(sampleMotion('p1', { ...baseSample, x: 120 }, NOW + 180).x).toBeCloseTo(60, 6)
+
+    sampleMotion('p1', { ...baseSample, x: 240 }, NOW + 240)
+    expect(entityMotions.p1?.x.duration).toBe(120)
+    expect(sampleMotion('p1', { ...baseSample, x: 240 }, NOW + 300).x).toBeCloseTo(180, 6)
+
+    sampleMotion('p1', { ...baseSample, x: 250 }, NOW + 250)
+    expect(entityMotions.p1?.x.duration).toBe(MOTION_POSITION_MIN_MS)
+
+    sampleMotion('p1', { ...baseSample, x: 300 }, NOW + 1250)
+    expect(entityMotions.p1?.x.duration).toBe(MOTION_POSITION_MAX_MS)
   })
 
   it('插值途中换目标时从当前值续上，不跳变', () => {

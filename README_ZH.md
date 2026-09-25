@@ -47,6 +47,10 @@ ObserverUI_NCEPU 是一款面向华电cser的 CS 赛事直播场景的 HUD 管�
 
 颜色、圆角、安全区域与各组件是否显示都可以在设置面板中调整，无需改动 Overlay 代码。
 
+### 导播专用地图
+
+按 `Ctrl + Alt + D` 可显示或隐藏本机的放大地图，再按一次即可切回 CS2 第一视角。地图沿用内置 HUD 的雷达外观，仅正方形地图可见，周围透明；它作为独立的 Electron 窗口从主进程接收实时数据，没有 1469 网页地址，也不会改变观众看到的 HUD。窗口不获取键盘焦点，显示时仍可用 CS2 的数字键切换选手。快捷键可在设置中修改。
+
 ### Overlay 管理
 
 **Overlays** 页面会列出内置、已导入与开发三类 Overlay，可切换当前生效项、把 `.zip` 资源包导入到 `Documents/ZhenHai/overlays`、在文件管理器中定位文件，以及删除导入的 Overlay。
@@ -57,7 +61,7 @@ ObserverUI_NCEPU 是一款面向华电cser的 CS 赛事直播场景的 HUD 管�
 
 ### 全局快捷键
 
-系统级快捷键让直播时无需切出游戏窗口：刷新 Overlay 与切换鼠标穿透。两者都可以在设置中改键，Overlay 也可以声明自己的快捷键。
+系统级快捷键让直播时无需切出游戏窗口：刷新 Overlay、切换鼠标穿透以及显示／隐藏导播地图。这些快捷键都可以在设置中改键，Overlay 也可以声明自己的快捷键。
 
 ### 界面多语言
 
@@ -91,6 +95,7 @@ ObserverUI_NCEPU 是一款面向华电cser的 CS 赛事直播场景的 HUD 管�
 | --- | --- | --- |
 | 刷新 Overlay | `Ctrl + Alt + I` | 向所有已连接的 Overlay 广播 `overlay:refresh` |
 | 切换鼠标穿透 | `Ctrl + Alt + M` | 切换 Overlay 窗口的 `ignoreMouseEvents` |
+| 显示／隐藏导播地图 | `Ctrl + Alt + D` | 按一次切换；地图窗口不接管数字键 |
 | Overlay 声明的快捷键 | 由 `overlay.json` 定义 | 仅在该 Overlay 被选中时注册 |
 
 在设置面板中按下想用的组合键即可改键，注册冲突会在输入框下方提示。

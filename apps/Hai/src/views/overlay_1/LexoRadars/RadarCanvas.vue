@@ -58,6 +58,7 @@ import {
 const props = defineProps<{
   mapConfig: MapConfig | null
   size: number
+  markerScale: number
   zoom: number
   zoomOrigin: [number, number]
   players: RadarPlayerObject[]
@@ -414,8 +415,8 @@ const drawBombs = (ctx: CanvasRenderingContext2D, now: number): void => {
       const size = containSize(
         image.naturalWidth,
         image.naturalHeight,
-        BOMB_DRAW_BOX,
-        BOMB_DRAW_BOX,
+        BOMB_DRAW_BOX * props.markerScale,
+        BOMB_DRAW_BOX * props.markerScale,
       )
 
       ctx.save()
@@ -591,12 +592,16 @@ const drawPlayers = (ctx: CanvasRenderingContext2D, now: number): void => {
     if (player.isAlive && isShootingNow(player.lastShoot, now)) {
       ctx.save()
       ctx.globalAlpha = motion.alpha
-      drawTracer(ctx, motion.x, motion.y, motion.yaw, box)
+      ctx.translate(motion.x, motion.y)
+      ctx.scale(props.markerScale, props.markerScale)
+      drawTracer(ctx, 0, 0, motion.yaw, box)
       ctx.restore()
     }
 
     ctx.save()
     ctx.globalAlpha = motion.alpha
+    ctx.translate(motion.x, motion.y)
+    ctx.scale(props.markerScale, props.markerScale)
 
     if (player.isAlive) {
       const bodyColor = colorFromVars(
@@ -605,12 +610,12 @@ const drawPlayers = (ctx: CanvasRenderingContext2D, now: number): void => {
         'rgba(255, 255, 255, 0.9)',
       )
 
-      drawPlayerMarker(ctx, motion.x, motion.y, motion.yaw, radius, bodyColor)
+      drawPlayerMarker(ctx, 0, 0, motion.yaw, radius, bodyColor)
 
       // 当前观战对象：圆外一圈描边
       if (player.isActive) {
         ctx.beginPath()
-        ctx.arc(motion.x, motion.y, radius + FOCUS_RING_OFFSET, 0, Math.PI * 2)
+        ctx.arc(0, 0, radius + FOCUS_RING_OFFSET, 0, Math.PI * 2)
         ctx.lineWidth = FOCUS_RING_WIDTH
         ctx.strokeStyle = FOCUS_RING_COLOR
         ctx.stroke()
@@ -623,7 +628,7 @@ const drawPlayers = (ctx: CanvasRenderingContext2D, now: number): void => {
       ].filter((src): src is string => src !== null)
 
       badges.forEach((src, index) => {
-        drawPlayerBadge(ctx, motion.x, motion.y, radius, src, index)
+        drawPlayerBadge(ctx, 0, 0, radius, src, index)
       })
     }
 
@@ -635,7 +640,7 @@ const drawPlayers = (ctx: CanvasRenderingContext2D, now: number): void => {
     ctx.shadowOffsetX = 1
     ctx.shadowOffsetY = 2
     ctx.shadowBlur = 3
-    ctx.fillText(String(player.observer_slot ?? ''), motion.x, motion.y)
+    ctx.fillText(String(player.observer_slot ?? ''), 0, 0)
     ctx.restore()
   }
 }
@@ -753,6 +758,7 @@ watch(
   [
     () => props.mapConfig,
     () => props.size,
+    () => props.markerScale,
     () => props.players,
     () => props.grenades,
     () => props.bombObjects,

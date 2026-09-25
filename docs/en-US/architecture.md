@@ -31,6 +31,7 @@ Zhenhai-HUD-Manager/
 | Preload | `apps/Zhen/src/preload` | `contextBridge` surface (`window.api`) for the manager UI and for the overlay window |
 | Renderer (manager) | `apps/Zhen/src/renderer` | Vue 3 + Pinia + Nuxt UI management interface (database, toolbox, overlay management, settings) |
 | Renderer (overlay) | `apps/Hai` | The broadcast HUD; production build is copied to `apps/Zhen/resources/overlay` |
+| Renderer (director map) | `apps/Hai/src/director` | A local page reusing the radar component; built into `apps/Zhen/resources/director-map` and fed over Electron IPC |
 | Adapter package | `packages/csgogsi` | Re-exports `csgogsi` 6.0.1, adds ZhenHai business types and a Vue GSI store |
 | Shared | `apps/Zhen/src/shared` | Types, constants and pure functions shared by main, preload, renderer and unit tests |
 
@@ -42,6 +43,8 @@ Zhenhai-HUD-Manager/
 4. Middleware merges database information: `_db` on players and teams, weapon/armor/bomb helper fields, `map.regularMR` / `map.overtimeMR`, and the effective `data.settings`.
 5. `GsiService` re-emits `gsi:data` and `gsi:<event>`; the Socket.IO service forwards them to connected clients — and only while at least one client is connected.
 6. Overlay pages (built-in, imported or a development URL) subscribe to Socket.IO and render the HUD.
+
+The director map is an additional Electron window. The main process sends enriched GSI data and the round and bomb events needed by the radar over IPC. Its page loads from the installed application, is not served by Express, and does not change the audience overlay stream.
 
 ## Local Server
 

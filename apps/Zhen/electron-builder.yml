@@ -13,6 +13,7 @@ files:
   - "!{.env,.env.*,.npmrc,pnpm-lock.yaml}"
   - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}"
   - "!resources/overlay/**"
+  - "!resources/director-map/**"
   - "!resources/gamestate_integration_zhenhai.cfg"
   - "!resources/overlay-bundles/**"
   - "!resources/native/**"
@@ -28,6 +29,8 @@ files:
 extraResources:
   - from: resources/overlay
     to: overlay
+  - from: resources/director-map
+    to: director-map
   - from: resources/gamestate_integration_zhenhai.cfg
     to: gamestate_integration_zhenhai.cfg
   - from: resources/overlays

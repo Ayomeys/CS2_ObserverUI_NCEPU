@@ -45,6 +45,10 @@ The Setup Wizard detects the CS2 installation through Steam and installs `gamest
 
 Colors, corner radius, safe area and per-component visibility are configured from the Settings panel — no overlay code needs to be touched.
 
+### Director Map
+
+Press `Ctrl + Alt + D` to show or hide a larger local map; press it again to return to the CS2 first-person view. It reuses the built-in HUD radar appearance: only the square map is visible, with transparent space around it. It receives live data directly from the Electron main process and has no page on port 1469. It does not change the audience HUD. The window does not take keyboard focus, so CS2's number keys remain available for switching players. The shortcut can be changed in Settings.
+
 ### Overlay Management
 
 The **Overlays** page lists built-in, imported and development overlays, switches the active one, imports a `.zip` bundle into `Documents/ZhenHai/overlays`, reveals files in the file manager and deletes them again.
@@ -55,7 +59,7 @@ A bundle can ship an `overlay.json` declaring its metadata, editable settings (`
 
 ### Global Shortcuts
 
-System-wide shortcuts remove the need to alt-tab while broadcasting: refresh the overlay and toggle mouse passthrough. Both are rebindable in Settings, and overlays may declare additional shortcuts of their own.
+System-wide shortcuts remove the need to alt-tab while broadcasting: refresh the overlay, toggle mouse passthrough and show or hide the director map. These are rebindable in Settings, and overlays may declare additional shortcuts of their own.
 
 ### Localization
 
@@ -89,6 +93,7 @@ Recommended browser source settings: width `1920`, height `1080`, URL from **Too
 | --- | --- | --- |
 | Refresh overlay | `Ctrl + Alt + I` | Broadcasts `overlay:refresh` to every connected overlay |
 | Toggle mouse passthrough | `Ctrl + Alt + M` | Switches `ignoreMouseEvents` on the overlay window |
+| Show / hide director map | `Ctrl + Alt + D` | Press once to toggle; the map does not capture number keys |
 | Overlay-declared shortcuts | Defined by `overlay.json` | Registered only while that overlay is selected |
 
 Rebind shortcuts in the Settings panel by pressing the combination you want; a registration conflict is reported below the field.

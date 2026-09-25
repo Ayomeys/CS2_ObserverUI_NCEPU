@@ -41,12 +41,14 @@ bun run dev:hai    # 仅 Overlay（Vite 开发服务器 http://localhost:1467/ov
 | 根 | `docs:check` | 校验 README/docs 链接、双语镜像一致性与占位符 |
 | `apps/Zhen` | `dev` | `electron-vite dev --watch` |
 | `apps/Zhen` | `build` | `typecheck` → `electron-vite build` → `pack:overlay` |
+| `apps/Zhen` | `dev` / `build` | 启动或构建前先运行 `apps/Hai build:director`，生成导播地图本地页面 |
 | `apps/Zhen` | `build:win` | 使用 `apps/Zhen/package.json` 中的版本号构建，并执行 `electron-builder --win` |
 | `apps/Zhen` | `test` | `node --test` 单元测试 |
 | `apps/Zhen` | `typecheck` | `typecheck:node` + `typecheck:web` + `typecheck:test` |
 | `apps/Zhen` | `pack:overlay` | 把构建好的 Overlay 压缩到仓库根目录 `dist/` |
 | `apps/Hai` | `dev` / `build` / `preview` | Vite 开发服务器、类型检查加生产构建、本地预览 |
 | `apps/Hai` | `type-check` | `vue-tsc --build` |
+| `apps/Hai` | `build:director` | 用相对资源路径把导播地图构建到 `apps/Zhen/resources/director-map` |
 
 ## 测试
 

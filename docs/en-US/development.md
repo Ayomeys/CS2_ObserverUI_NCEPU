@@ -41,12 +41,14 @@ While developing the overlay, register a development overlay in the **Overlays**
 | Root | `docs:check` | Validates README/docs links, language mirror parity and placeholders |
 | `apps/Zhen` | `dev` | `electron-vite dev --watch` |
 | `apps/Zhen` | `build` | `typecheck` → `electron-vite build` → `pack:overlay` |
+| `apps/Zhen` | `dev` / `build` | Runs `apps/Hai build:director` first to generate the local director map page |
 | `apps/Zhen` | `build:win` | Builds with the version in `apps/Zhen/package.json`, then runs `electron-builder --win` |
 | `apps/Zhen` | `test` | `node --test` unit suite |
 | `apps/Zhen` | `typecheck` | `typecheck:node` + `typecheck:web` + `typecheck:test` |
 | `apps/Zhen` | `pack:overlay` | Zips the built overlay into the repository `dist/` folder |
 | `apps/Hai` | `dev` / `build` / `preview` | Vite dev server, type-check plus production build, local preview |
 | `apps/Hai` | `type-check` | `vue-tsc --build` |
+| `apps/Hai` | `build:director` | Builds the director map with relative assets into `apps/Zhen/resources/director-map` |
 
 ## Tests
 

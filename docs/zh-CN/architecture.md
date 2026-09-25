@@ -31,6 +31,7 @@ Zhenhai-HUD-Manager/
 | Preload | `apps/Zhen/src/preload` | 面向管理端与 Overlay 窗口的 `contextBridge` 接口（`window.api`） |
 | 渲染进程（管理端） | `apps/Zhen/src/renderer` | Vue 3 + Pinia + Nuxt UI 管理界面（数据库、工具箱、Overlay 管理、设置） |
 | 渲染进程（Overlay） | `apps/Hai` | 直播画面使用的 HUD；生产构建会复制到 `apps/Zhen/resources/overlay` |
+| 渲染进程（导播地图） | `apps/Hai/src/director` | 复用雷达组件的本机页面；独立构建到 `apps/Zhen/resources/director-map`，通过 Electron IPC 接收 GSI |
 | 适配包 | `packages/csgogsi` | 重新导出 `csgogsi` 6.0.1，补充 ZhenHai 业务类型与 Vue GSI store |
 | 共享层 | `apps/Zhen/src/shared` | 类型、常量与纯函数，供 main / preload / renderer 与单元测试共用 |
 
@@ -42,6 +43,8 @@ Zhenhai-HUD-Manager/
 4. 各中间件合并数据库信息：玩家与队伍的 `_db`、武器/护甲/炸弹派生字段、`map.regularMR` / `map.overtimeMR`，以及生效中的 `data.settings`。
 5. `GsiService` 重新派发 `gsi:data` 与 `gsi:<event>`，Socket.IO 服务转发给已连接客户端（仅在存在客户端连接时转发）。
 6. Overlay 页面（内置、导入或开发地址）订阅 Socket.IO 并渲染画面。
+
+导播地图是额外的 Electron 窗口：主进程把增强后的 GSI 数据与雷达需要的回合、炸弹事件通过 IPC 送给本机页面。该页面从安装包内加载，不由 Express 提供，也不改变上述观众 Overlay 数据流。
 
 ## 本地服务
 

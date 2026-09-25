@@ -5,7 +5,11 @@
  * - acceleratorFromInput / formatAccelerator / canonicalAccelerator 都是纯函数，
  *   便于单元测试（不依赖 DOM 与 Electron）。
  */
-export const SHORTCUT_ACTIONS = ["overlayRefresh", "overlayToggleMouseEvents"] as const;
+export const SHORTCUT_ACTIONS = [
+  "overlayRefresh",
+  "overlayToggleMouseEvents",
+  "directorMapToggle",
+] as const;
 
 export type ShortcutAction = (typeof SHORTCUT_ACTIONS)[number];
 
@@ -22,11 +26,13 @@ export type ShortcutBindings = Partial<Record<ShortcutAction, string>>;
 export const SHORTCUT_ACTION_LABELS: Record<ShortcutAction, string> = {
   overlayRefresh: "Refresh Overlay",
   overlayToggleMouseEvents: "Toggle Overlay Mouse Events",
+  directorMapToggle: "Toggle Director Map",
 };
 
 export const DEFAULT_SHORTCUTS: Record<ShortcutAction, string> = {
   overlayRefresh: "CommandOrControl+Alt+I",
   overlayToggleMouseEvents: "CommandOrControl+Alt+M",
+  directorMapToggle: "CommandOrControl+Alt+D",
 };
 
 /** 录制用输入：由 KeyboardEvent 提取，保持与 DOM 解耦。 */
@@ -88,6 +94,12 @@ function normalizeKey(input: ShortcutKeyInput): string | null {
     return input.key;
   }
 
+  // Shift + 数字键在 KeyboardEvent.key 中会变成标点，按物理数字键还原。
+  if (input.shiftKey) {
+    const digit = /^Digit([0-9])$/.exec(input.code);
+    if (digit) return digit[1]!;
+  }
+
   if (/^F([1-9]|1[0-9]|2[0-4])$/i.test(input.key)) {
     return input.key.toUpperCase();
   }
@@ -98,7 +110,7 @@ function normalizeKey(input: ShortcutKeyInput): string | null {
 /**
  * 根据一次按键生成 Electron accelerator。
  *
- * 规则：必须有 CommandOrControl / Alt / Super 之一（仅 Shift 或裸键会被忽略），
+ * 规则：必须有 Ctrl / Alt / Shift / Super 之一；单独的修饰键或裸键会被忽略，
  * 键名限定在字母、数字、F1-F24 与常见功能键，其它键（标点、IME 等）返回 null。
  */
 export function acceleratorFromInput(input: ShortcutKeyInput): string | null {
@@ -108,7 +120,7 @@ export function acceleratorFromInput(input: ShortcutKeyInput): string | null {
     return null;
   }
 
-  const hasPrimaryModifier = input.ctrlKey || input.altKey || input.metaKey;
+  const hasPrimaryModifier = input.ctrlKey || input.altKey || input.shiftKey || input.metaKey;
 
   if (!hasPrimaryModifier) {
     return null;

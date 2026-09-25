@@ -12,7 +12,6 @@ import type {
 import { clearFires, deriveFlameRadius } from './fire'
 
 export const playersStates: Player[][] = []
-export const grenadesStates: Grenade[][] = []
 
 const directions: Record<string, number> = {}
 const deadLocations: Record<string, number[]> = {}
@@ -118,32 +117,8 @@ export const parsePlayerPosition = (
   player: Player,
   mapConfig: ScaleConfig,
 ): [number, number, number] => {
-  const playerData = playersStates
-    .slice(0, 5)
-    .map((players) => players.find((pl) => pl.steamid === player.steamid))
-    .filter((pl): pl is Player => Boolean(pl))
-
-  if (playerData.length === 0) {
-    return [0, 0, calculateDirection(player)]
-  }
-
-  const positions: [number, number][] = playerData.map((playerEntry) =>
-    parsePosition(playerEntry.position, mapConfig),
-  )
-
-  const entryAmount = positions.length
-
-  let x = 0
-  let y = 0
-
-  for (const position of positions) {
-    x += position[0]
-    y += position[1]
-  }
-
-  const degree = calculateDirection(player)
-
-  return [x / entryAmount, y / entryAmount, Number(degree)]
+  const [x, y] = parsePosition(player.position, mapConfig)
+  return [x, y, Number(calculateDirection(player))]
 }
 
 const parseGrenadePosition = (
@@ -154,34 +129,7 @@ const parseGrenadePosition = (
     return parsePosition(explosionPlaces[grenade.id]!, config)
   }
 
-  const grenadeData = grenadesStates
-    .slice(0, 5)
-    .map((grenades) => grenades.find((gr) => gr.id === grenade.id))
-    .filter((gr): gr is Grenade => Boolean(gr))
-
-  if (grenadeData.length === 0) {
-    return 'position' in grenade ? parsePosition(grenade.position, config) : null
-  }
-
-  const positions: [number, number][] = grenadeData
-    .map((grenadeEntry) =>
-      'position' in grenadeEntry ? parsePosition(grenadeEntry.position, config) : null,
-    )
-    .filter((posData): posData is [number, number] => posData !== null)
-
-  if (positions.length === 0) return null
-
-  const entryAmount = positions.length
-
-  let x = 0
-  let y = 0
-
-  for (const position of positions) {
-    x += position[0]
-    y += position[1]
-  }
-
-  return [x / entryAmount, y / entryAmount]
+  return 'position' in grenade ? parsePosition(grenade.position, config) : null
 }
 
 const isShootingWeapon = (weapon?: Weapon): weapon is Weapon => {
@@ -632,7 +580,6 @@ export const extendPlayer = ({
 
 export const resetStates = (): void => {
   playersStates.length = 0
-  grenadesStates.length = 0
 
   for (const key in directions) delete directions[key]
   for (const key in explosionPlaces) delete explosionPlaces[key]

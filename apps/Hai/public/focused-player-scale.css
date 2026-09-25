@@ -692,10 +692,10 @@
 
 .unified-matchbar__score {
   display: grid !important;
-  width: 680px !important;
+  width: 920px !important;
   height: 66px !important;
   align-self: center !important;
-  grid-template-columns: 284px 104px 284px !important;
+  grid-template-columns: 404px 104px 404px !important;
   gap: 4px !important;
 }
 

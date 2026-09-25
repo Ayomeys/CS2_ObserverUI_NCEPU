@@ -33,6 +33,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   overlayBorderRadius: 8,
   overlayRefreshShortcut: DEFAULT_SHORTCUTS.overlayRefresh,
   overlayMouseToggleShortcut: DEFAULT_SHORTCUTS.overlayToggleMouseEvents,
+  directorMapToggleShortcut: DEFAULT_SHORTCUTS.directorMapToggle,
   overlaySafeZoneX: 16,
   overlaySafeZoneY: 16,
   extras: {},

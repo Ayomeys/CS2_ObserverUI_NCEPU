@@ -1,6 +1,6 @@
 {
   "name": "@zhenhai/zhen",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "An Electron application with Vue and TypeScript",
   "homepage": "https://electron-vite.org",
@@ -15,8 +15,8 @@
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "typecheck": "bun run typecheck:node && bun run typecheck:web && bun run typecheck:test",
     "start": "electron-vite preview",
-    "dev": "electron-vite dev --watch",
-    "build": "bun run typecheck && electron-vite build && bun run pack:overlay",
+    "dev": "bun run --cwd ../Hai build:director && electron-vite dev --watch",
+    "build": "bun run --cwd ../Hai build:director && bun run typecheck && electron-vite build && bun run pack:overlay",
     "pack:overlay": "node scripts/pack-overlay.mjs",
     "postinstall": "electron-builder install-app-deps",
     "version:patch": "node scripts/bump-version.js",

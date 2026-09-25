@@ -118,6 +118,7 @@ export interface SettingFormData {
   overlayBorderRadius: number;
   overlayRefreshShortcut: string;
   overlayMouseToggleShortcut: string;
+  directorMapToggleShortcut: string;
   overlaySafeZoneX: number;
   overlaySafeZoneY: number;
   extras: Record<string, unknown>;

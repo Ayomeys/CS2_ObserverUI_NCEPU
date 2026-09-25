@@ -4,10 +4,10 @@ import { shortcutService } from "../services/shortcut.service";
 
 export function registerShortcutIpc(): void {
   ipcMain.handle("shortcut:register", (_, bindings: ShortcutBindings) => {
-    return shortcutService.register(bindings ?? {});
+    return shortcutService.update(bindings ?? {});
   });
 
   ipcMain.handle("shortcut:get", () => {
-    return shortcutService.getRegistered();
+    return shortcutService.getConfigured();
   });
 }

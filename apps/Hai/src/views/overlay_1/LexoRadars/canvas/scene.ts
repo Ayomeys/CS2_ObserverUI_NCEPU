@@ -9,8 +9,12 @@ import type { RadarGrenadeObject, RadarPlayerObject } from '../utils/interface'
 /** 雷达内部坐标系边长，与地图配置、点位坐标一致。 */
 export const RADAR_SIZE = 1024
 
-/** 位置 / 朝向 / 缩放 / 显隐的插值时长，对齐原来 CSS 过渡的手感。 */
+/** 首次位置变化使用的时长；之后按实际位置数据间隔调整。 */
 export const MOTION_POSITION_MS = 100
+export const MOTION_POSITION_MIN_MS = 50
+export const MOTION_POSITION_MAX_MS = 250
+
+/** 朝向 / 缩放 / 显隐保留原有的缓出过渡。 */
 export const MOTION_YAW_MS = 200
 export const MOTION_SCALE_MS = 500
 export const MOTION_ALPHA_MS = 500
@@ -341,13 +345,14 @@ export const lerpAngle = (from: number, to: number, t: number): number =>
 export const isShootingNow = (lastShoot: number, now: number): boolean =>
   now - lastShoot <= SHOOT_WINDOW_MS
 
-/** 单条插值轨道：目标变化时记下起点与时刻，之后按 duration 缓出。 */
+/** 单条插值轨道：位置匀速移动，其余属性保留缓出。 */
 export type MotionTrack = {
   from: number
   to: number
   startedAt: number
   duration: number
   angle: boolean
+  linear: boolean
 }
 
 export type EntityMotion = {
@@ -356,6 +361,7 @@ export type EntityMotion = {
   yaw: MotionTrack
   scale: MotionTrack
   alpha: MotionTrack
+  lastPositionAt: number
 }
 
 export type MotionSample = {
@@ -376,7 +382,7 @@ export const trackValue = (track: MotionTrack, now: number): number => {
   if (progress <= 0) return track.from
   if (progress >= 1) return track.to
 
-  const t = easeOutCubic(progress)
+  const t = track.linear ? progress : easeOutCubic(progress)
 
   return track.angle ? lerpAngle(track.from, track.to, t) : lerp(track.from, track.to, t)
 }
@@ -386,12 +392,14 @@ const createTrack = (
   duration: number,
   angle: boolean,
   now: number,
+  linear = false,
 ): MotionTrack => ({
   from: value,
   to: value,
   startedAt: now,
   duration,
   angle,
+  linear,
 })
 
 const bindTrack = (track: MotionTrack, target: number, now: number): void => {
@@ -412,17 +420,34 @@ export const sampleMotion = (id: string, target: MotionSample, now: number): Mot
 
   if (!motion) {
     motion = {
-      x: createTrack(target.x, MOTION_POSITION_MS, false, now),
-      y: createTrack(target.y, MOTION_POSITION_MS, false, now),
+      x: createTrack(target.x, MOTION_POSITION_MS, false, now, true),
+      y: createTrack(target.y, MOTION_POSITION_MS, false, now, true),
       yaw: createTrack(target.yaw, MOTION_YAW_MS, true, now),
       scale: createTrack(target.scale, MOTION_SCALE_MS, false, now),
       alpha: createTrack(target.alpha, MOTION_ALPHA_MS, false, now),
+      lastPositionAt: now,
     }
     entityMotions[id] = motion
   }
 
+  const xChanged = motion.x.to !== target.x
+  const yChanged = motion.y.to !== target.y
+  const positionChanged = xChanged || yChanged
+  let positionDuration = MOTION_POSITION_MS
+  if (positionChanged) {
+    const interval = now - motion.lastPositionAt
+    positionDuration = interval > 0
+      ? Math.min(MOTION_POSITION_MAX_MS, Math.max(MOTION_POSITION_MIN_MS, interval))
+      : MOTION_POSITION_MS
+    motion.lastPositionAt = now
+  }
+
   bindTrack(motion.x, target.x, now)
   bindTrack(motion.y, target.y, now)
+  if (positionChanged) {
+    if (xChanged) motion.x.duration = positionDuration
+    if (yChanged) motion.y.duration = positionDuration
+  }
   bindTrack(motion.yaw, target.yaw, now)
   bindTrack(motion.scale, target.scale, now)
   bindTrack(motion.alpha, target.alpha, now)
@@ -439,7 +464,9 @@ export const sampleMotion = (id: string, target: MotionSample, now: number): Mot
 /** 是否还有未完成的插值（决定要不要继续跑帧）；目标没变过的轨道不算。 */
 export const hasPendingMotion = (now: number): boolean =>
   Object.values(entityMotions).some((motion) =>
-    Object.values(motion).some((track) => track.from !== track.to && trackProgress(track, now) < 1),
+    [motion.x, motion.y, motion.yaw, motion.scale, motion.alpha].some(
+      (track) => track.from !== track.to && trackProgress(track, now) < 1,
+    ),
   )
 
 export const pruneMotions = (activeIds: Set<string>): void => {

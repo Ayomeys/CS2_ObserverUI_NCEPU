@@ -23,7 +23,6 @@ import {
   extendFire,
   extendGrenade,
   extendPlayer,
-  grenadesStates,
   parsePosition,
   playersStates,
   pruneTrails,
@@ -47,6 +46,10 @@ const props = defineProps({
   size: {
     type: Number,
     default: 420,
+  },
+  markerScale: {
+    type: Number,
+    default: 1,
   },
 })
 
@@ -72,12 +75,10 @@ watch(
     pruneTrails()
 
     const currentGrenades: Grenade[] = data?.grenades || []
-    grenadesStates.unshift(currentGrenades)
-    grenadesStates.splice(5)
 
     const currentPlayers: Player[] = data?.players || []
     playersStates.unshift(currentPlayers)
-    playersStates.splice(5)
+    playersStates.splice(2)
 
     updateDeadLocations(currentPlayers)
 
@@ -279,6 +280,7 @@ watch([playersExtended, activeZoom], () => {
           <RadarCanvas
             :map-config="mapConfig"
             :size="size"
+            :marker-scale="markerScale"
             :zoom="smZoom"
             :zoom-origin="smOrigin"
             :players="playersExtended"

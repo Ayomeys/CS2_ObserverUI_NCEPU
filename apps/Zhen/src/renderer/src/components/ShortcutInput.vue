@@ -84,7 +84,7 @@ function handleKeydown(event: KeyboardEvent): void {
   const accelerator = acceleratorFromInput(input);
 
   if (!accelerator) {
-    hint.value = "需要 Ctrl / Alt / Super 之一，键名限字母、数字、F1-F24 或常见功能键。";
+    hint.value = "需要 Ctrl / Alt / Shift / Super 之一，键名限字母、数字、F1-F24 或常见功能键。";
     return;
   }
 

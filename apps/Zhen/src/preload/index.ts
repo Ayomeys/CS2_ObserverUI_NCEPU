@@ -144,16 +144,45 @@ const api: WindowAPI = {
   },
 };
 
+const directorMap = {
+  getSnapshot: () => ipcRenderer.invoke("director-map:snapshot"),
+  onData: (callback: (data: import("@zhenhai/csgogsi/types").GameState) => void) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      data: import("@zhenhai/csgogsi/types").GameState,
+    ): void => callback(data);
+    ipcRenderer.on("director-map:data", listener);
+    return (): void => {
+      ipcRenderer.removeListener("director-map:data", listener);
+    };
+  },
+  onEvent: (
+    callback: (name: import("@zhenhai/csgogsi/gsi-vue").GsiEventName, args: unknown[]) => void,
+  ) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      name: import("@zhenhai/csgogsi/gsi-vue").GsiEventName,
+      args: unknown[],
+    ): void => callback(name, args);
+    ipcRenderer.on("director-map:event", listener);
+    return (): void => {
+      ipcRenderer.removeListener("director-map:event", listener);
+    };
+  },
+};
+
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld("electron", electronAPI);
     contextBridge.exposeInMainWorld("api", api);
+    contextBridge.exposeInMainWorld("directorMap", directorMap);
   } catch (error) {
     writeLog("error", "Preload", "Failed to expose Electron API", error);
   }
 } else {
   window.electron = electronAPI;
   window.api = api;
+  window.directorMap = directorMap;
 }
 
 writeLog("info", "Preload", "Preload bridge ready");

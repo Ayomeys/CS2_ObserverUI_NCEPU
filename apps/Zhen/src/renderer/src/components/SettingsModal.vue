@@ -19,6 +19,7 @@ import { resolveLocale } from "@renderer/utils/locale";
 import {
   DEFAULT_SHORTCUTS,
   SHORTCUT_ACTIONS,
+  canonicalAccelerator,
   type ShortcutAction,
   type ShortcutBindings,
 } from "../../../shared/shortcuts";
@@ -44,6 +45,7 @@ const recordId = ref<string | null>(null);
 const shortcutBindings = ref<ShortcutBindings>({
   overlayRefresh: DEFAULT_SHORTCUTS.overlayRefresh,
   overlayToggleMouseEvents: DEFAULT_SHORTCUTS.overlayToggleMouseEvents,
+  directorMapToggle: DEFAULT_SHORTCUTS.directorMapToggle,
 });
 const shortcutErrors = ref<Partial<Record<ShortcutAction, string>>>({});
 const overlayIgnoreMouseEvents = ref(true);
@@ -124,6 +126,8 @@ async function loadSettings() {
         overlayRefresh: formData.value.overlayRefreshShortcut || DEFAULT_SHORTCUTS.overlayRefresh,
         overlayToggleMouseEvents:
           formData.value.overlayMouseToggleShortcut || DEFAULT_SHORTCUTS.overlayToggleMouseEvents,
+        directorMapToggle:
+          formData.value.directorMapToggleShortcut || DEFAULT_SHORTCUTS.directorMapToggle,
       };
 
       shortcutErrors.value = {};
@@ -183,19 +187,24 @@ async function saveSettings() {
       overlayToggleMouseEvents:
         shortcutBindings.value.overlayToggleMouseEvents?.trim() ||
         DEFAULT_SHORTCUTS.overlayToggleMouseEvents,
+      directorMapToggle:
+        shortcutBindings.value.directorMapToggle?.trim() || DEFAULT_SHORTCUTS.directorMapToggle,
     };
 
-    // 先注册快捷键：不可用时中止保存，避免落库一组实际无效的组合键。
+    // 只检查本次修改的快捷键；之前已被其它程序占用的键不阻止保存其它设置。
     const previousBindings = await window.api.shortcut.get();
     const registration = await window.api.shortcut.register(nextBindings);
-    const failedActions = SHORTCUT_ACTIONS.filter((action) => !registration[action]?.success);
+    const failedActions = SHORTCUT_ACTIONS.filter(
+      (action) =>
+        canonicalAccelerator(nextBindings[action] ?? "") !==
+          canonicalAccelerator(previousBindings[action] ?? "") &&
+        !registration[action]?.success,
+    );
 
     if (failedActions.length > 0) {
       shortcutErrors.value = Object.fromEntries(
         failedActions.map((action) => [action, registration[action]?.error ?? "注册失败"]),
       ) as Partial<Record<ShortcutAction, string>>;
-
-      await window.api.shortcut.register(previousBindings);
 
       toast.add({
         title: t("settings.shortcutUnavailableTitle"),
@@ -210,6 +219,7 @@ async function saveSettings() {
     shortcutErrors.value = {};
     formData.value.overlayRefreshShortcut = nextBindings.overlayRefresh ?? "";
     formData.value.overlayMouseToggleShortcut = nextBindings.overlayToggleMouseEvents ?? "";
+    formData.value.directorMapToggleShortcut = nextBindings.directorMapToggle ?? "";
 
     const payload: AppSettings = {
       ...existingSettings.value,
@@ -261,6 +271,7 @@ async function saveSettings() {
       applyWindowMaterialBody(formData.value.windowMaterial);
       emit("update:open", false);
     } else {
+      await window.api.shortcut.register(previousBindings);
       rendererLogger.error("SettingsModal", "Settings save failed", result.error);
       toast.add({
         title: t("settings.saveFailedTitle"),
@@ -372,6 +383,12 @@ watch(
                 :error="shortcutErrors.overlayToggleMouseEvents"
               >
                 <ShortcutInput v-model="shortcutBindings.overlayToggleMouseEvents" />
+              </UFormField>
+              <UFormField
+                :label="t('settings.toggleDirectorMap')"
+                :error="shortcutErrors.directorMapToggle"
+              >
+                <ShortcutInput v-model="shortcutBindings.directorMapToggle" />
               </UFormField>
             </div>
             <p class="mt-2 text-xs text-muted">

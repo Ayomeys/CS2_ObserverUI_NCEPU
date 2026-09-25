@@ -171,6 +171,16 @@ export const useGsiStore = defineStore("gsi", () => {
     }
   }
 
+  /** Electron 本机页面通过 IPC 注入数据，不建立 Socket.IO 连接。 */
+  function receiveData(raw: GameState): void {
+    handleGsiData(raw);
+  }
+
+  function receiveEvent(event: GsiEventName, args: unknown[]): void {
+    if (event === "data") return;
+    emitLocal(event, args);
+  }
+
   function cleanupSocket(): void {
     if (!socket.value) {
       return;
@@ -313,6 +323,8 @@ export const useGsiStore = defineStore("gsi", () => {
   return {
     connected,
     data,
+    receiveData,
+    receiveEvent,
     connect,
     disconnect,
     on,
