@@ -1023,6 +1023,28 @@
   line-height: 1 !important;
 }
 
+.unified-matchbar .zhen-c4-icon {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.75));
+}
+
+.unified-matchbar.zhen-c4-flashing .zhen-c4-icon {
+  animation: zhen-c4-blink 1.2s step-end infinite;
+}
+
+.unified-matchbar.zhen-c4-fast-flash .zhen-c4-icon {
+  animation-duration: 0.45s;
+}
+
+@keyframes zhen-c4-blink {
+  0%, 49.99% {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.75));
+  }
+  50%, 100% {
+    filter: brightness(0) saturate(100%) invert(19%) sepia(99%) saturate(7395%) hue-rotate(0deg)
+      drop-shadow(0 0 7px rgba(255, 35, 35, 0.9));
+  }
+}
+
 .unified-match-round__label {
   margin-top: 5px !important;
   color: rgba(255, 255, 255, 0.58) !important;

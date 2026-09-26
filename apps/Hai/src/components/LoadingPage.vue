@@ -37,7 +37,7 @@ const secondsLeft = computed(() => String(Math.max(1, props.countdown)))
       <section class="plate">
         <header class="plate__brand">
           <img class="plate__icon" src="/icon.png" alt="" width="34" height="34" />
-          <span class="plate__name">ZhenHai HUD</span>
+          <span class="plate__name">NCEPU HUD</span>
         </header>
 
         <div class="plate__meta">

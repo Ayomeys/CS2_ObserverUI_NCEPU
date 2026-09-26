@@ -14,7 +14,9 @@ class DirectorMapService {
 
   private readonly onData = (data: GameState): void => {
     this.latestData = data;
-    this.window?.webContents.send("director-map:data", data);
+    if (this.desiredVisible && this.window && !this.window.isDestroyed()) {
+      this.window.webContents.send("director-map:data", data);
+    }
   };
 
   private readonly onRoundStart = (...args: unknown[]): void => this.sendEvent("roundStart", args);

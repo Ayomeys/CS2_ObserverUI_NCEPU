@@ -113,6 +113,8 @@ const BOMB_PLANTED_SPREAD = 50
 const DEAD_ALPHA = 0
 
 const canvasEl = ref<HTMLCanvasElement | null>(null)
+const mapCanvasEl = ref<HTMLCanvasElement | null>(null)
+let mapDirty = true
 
 /** 最后一个已知的炸弹坐标：bombExplode / bombDefuse 事件没有位置载荷，用它摆特效。 */
 let lastBombPosition: [number, number] | null = null
@@ -134,17 +136,21 @@ const bombKey = (bomb: RadarBombObject): string => `bomb:${bomb.id}`
  */
 const syncCanvasSize = (): void => {
   const canvas = canvasEl.value
+  const mapCanvas = mapCanvasEl.value
 
-  if (!canvas) return
+  if (!canvas || !mapCanvas) return
 
   const dpr = window.devicePixelRatio || 1
   const rect = canvas.getBoundingClientRect()
   const displaySize = rect.width > 0 ? rect.width : props.size
   const size = Math.max(1, Math.round(displaySize * dpr))
 
-  if (canvas.width !== size || canvas.height !== size) {
-    canvas.width = size
-    canvas.height = size
+  for (const layer of [canvas, mapCanvas]) {
+    if (layer.width !== size || layer.height !== size) {
+      layer.width = size
+      layer.height = size
+      mapDirty = true
+    }
   }
 }
 
@@ -203,6 +209,28 @@ const drawMap = (ctx: CanvasRenderingContext2D): void => {
   if (!image) return
 
   ctx.drawImage(image, 0, 0, RADAR_SIZE, RADAR_SIZE)
+}
+
+const drawMapLayer = (): void => {
+  const canvas = mapCanvasEl.value
+  const ctx = canvas?.getContext('2d')
+  if (!canvas || !ctx) return
+
+  const scale = canvas.width / RADAR_SIZE
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  ctx.setTransform(1, 0, 0, 1, 0, 0)
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.setTransform(scale, 0, 0, scale, 0, 0)
+
+  if (props.zoom !== 1) {
+    ctx.translate(props.zoomOrigin[0], props.zoomOrigin[1])
+    ctx.scale(props.zoom, props.zoom)
+    ctx.translate(-props.zoomOrigin[0], -props.zoomOrigin[1])
+  }
+
+  drawMap(ctx)
+  mapDirty = false
 }
 
 const drawTrails = (ctx: CanvasRenderingContext2D, now: number): void => {
@@ -646,6 +674,8 @@ const drawPlayers = (ctx: CanvasRenderingContext2D, now: number): void => {
 }
 
 const draw = (now: number): void => {
+  if (mapDirty) drawMapLayer()
+
   const canvas = canvasEl.value
   const ctx = canvas?.getContext('2d')
 
@@ -667,7 +697,6 @@ const draw = (now: number): void => {
     ctx.translate(-props.zoomOrigin[0], -props.zoomOrigin[1])
   }
 
-  drawMap(ctx)
   drawTrails(ctx, now)
   drawFires(ctx, now)
   drawGrenades(ctx, now)
@@ -754,24 +783,29 @@ const handleResize = (): void => {
 
 let stopAssets: (() => void) | null = null
 
-watch(
-  [
-    () => props.mapConfig,
-    () => props.size,
-    () => props.markerScale,
-    () => props.players,
-    () => props.grenades,
-    () => props.bombObjects,
-    () => props.fires,
-    () => props.zoom,
-    () => props.zoomOrigin,
-  ],
-  () => {
-    syncCanvasSize()
-    requestDraw()
-  },
-  { immediate: true },
-)
+watch(() => props.size, () => {
+  syncCanvasSize()
+  requestDraw()
+})
+
+watch(() => props.mapConfig, () => {
+  mapDirty = true
+  requestDraw()
+})
+
+watch([() => props.zoom, () => props.zoomOrigin], (_next, previous) => {
+  if (props.zoom === 1 && previous[0] === 1) return
+  mapDirty = true
+  requestDraw()
+})
+
+watch([
+  () => props.markerScale,
+  () => props.players,
+  () => props.grenades,
+  () => props.bombObjects,
+  () => props.fires,
+], requestDraw)
 
 /**
  * C4 爆炸 / 拆除：服务端会转发这两个事件，比"等某个状态出现在数据里"可靠得多。
@@ -792,7 +826,10 @@ useGsiEvent('bombDefuse', () => {
 onMounted(() => {
   syncCanvasSize()
   preloadSprites()
-  stopAssets = onAssetsUpdated(requestDraw)
+  stopAssets = onAssetsUpdated(() => {
+    mapDirty = true
+    requestDraw()
+  })
   window.addEventListener('resize', handleResize)
   requestDraw()
 })
@@ -812,15 +849,26 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <canvas ref="canvasEl" class="radar-canvas" aria-hidden="true" />
+  <div class="radar-canvas-layers" aria-hidden="true">
+    <canvas ref="mapCanvasEl" class="radar-canvas" />
+    <canvas ref="canvasEl" class="radar-canvas" />
+  </div>
 </template>
 
 <style scoped>
 /*
- * 画布直接铺满显示尺寸的容器：内部仍按 1024 坐标系绘制，
+ * 底图与动态图层分别铺满容器：内部仍按 1024 坐标系绘制，
  * backing store 由脚本按「实际显示尺寸 × DPR」设置，保证像素一比一。
  */
+.radar-canvas-layers {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .radar-canvas {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;

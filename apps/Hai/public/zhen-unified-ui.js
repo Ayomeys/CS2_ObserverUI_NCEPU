@@ -8,6 +8,7 @@
   const ITEM_LIFETIME = 6000
   const CUSTOM_KILLFEED_ENABLED = false
   const C4_TIMER_SECONDS = 40
+  const C4_CLOCK_STORAGE_KEY = 'zhen:c4-clock'
   const DEFUSE_KIT_SECONDS = 5
   const DEFUSE_NO_KIT_SECONDS = 10
   const TIMEOUT_FALLBACK_SECONDS = 30
@@ -25,6 +26,8 @@
   let killfeedEnabled = false
   let c4EndTime = 0
   let c4TimerActive = false
+  let c4ClockInitialized = false
+  let c4RoundKey = ''
   let defuseEndTime = 0
   let defuseMaxSeconds = DEFUSE_KIT_SECONDS
   let defuseTimerActive = false
@@ -350,6 +353,8 @@
       const defuseTimer = ensureDefuseTimer(root)
       const defuseFill = defuseTimer.querySelector('.zhen-defuse-countdown__fill')
       root.classList.toggle('zhen-c4-active', c4TimerActive)
+      root.classList.toggle('zhen-c4-flashing', c4TimerActive && remaining > 0)
+      root.classList.toggle('zhen-c4-fast-flash', c4TimerActive && remaining > 0 && remaining <= 10)
       root.classList.toggle('zhen-defuse-active', defuseTimerActive)
       timer.classList.toggle('is-active', c4TimerActive)
       defuseTimer.classList.toggle('is-active', defuseTimerActive)
@@ -364,28 +369,81 @@
     }
   }
 
+  function bombRoundKey(gsi) {
+    const map = gsi && gsi.map
+    return map && map.name && Number.isFinite(Number(map.round))
+      ? `${map.name}:${map.round}`
+      : ''
+  }
+
+  function saveC4Clock(seconds) {
+    if (!c4RoundKey) return
+    try {
+      window.sessionStorage.setItem(C4_CLOCK_STORAGE_KEY, JSON.stringify({
+        round: c4RoundKey,
+        deadline: Date.now() + seconds * 1000,
+      }))
+    } catch (_) {}
+  }
+
+  function restoreC4Clock() {
+    if (!c4RoundKey) return false
+    try {
+      const saved = JSON.parse(window.sessionStorage.getItem(C4_CLOCK_STORAGE_KEY) || 'null')
+      const remaining = Number(saved && saved.deadline) - Date.now()
+      if (saved && saved.round === c4RoundKey && remaining > 0 && remaining <= C4_TIMER_SECONDS * 1000) {
+        c4EndTime = performance.now() + remaining
+        c4ClockInitialized = true
+        return true
+      }
+    } catch (_) {}
+    return false
+  }
+
+  function clearC4Clock() {
+    c4EndTime = 0
+    c4ClockInitialized = false
+    try { window.sessionStorage.removeItem(C4_CLOCK_STORAGE_KEY) } catch (_) {}
+  }
+
   function updateC4Timer(gsi) {
     const phase = String(gsi && gsi.phase_countdowns && gsi.phase_countdowns.phase || '')
     const state = String(gsi && gsi.bomb && gsi.bomb.state || '')
-    const active = phase === 'bomb' || phase === 'defuse' || state === 'planted' || state === 'defusing'
+    const roundKey = bombRoundKey(gsi)
+    if (roundKey !== c4RoundKey) {
+      c4EndTime = 0
+      c4ClockInitialized = false
+      c4RoundKey = roundKey
+    }
+    const finished = state === 'defused' || state === 'exploded' || phase === 'over'
+    const active = !finished && (phase === 'bomb' || phase === 'defuse' || state === 'planted' || state === 'defusing')
     const bombSeconds = Number(gsi && gsi.bomb && gsi.bomb.countdown || 0)
     const phaseSeconds = phase === 'bomb'
       ? Number(gsi && gsi.phase_countdowns && gsi.phase_countdowns.phase_ends_in || 0)
       : 0
-    const seconds = bombSeconds > 0 ? bombSeconds : phaseSeconds
     const nextDefuseActive = phase === 'defuse' || state === 'defusing'
     const defuseSeconds = phase === 'defuse'
       ? Number(gsi && gsi.phase_countdowns && gsi.phase_countdowns.phase_ends_in || 0)
       : 0
     const wasDefuseActive = defuseTimerActive
 
-    c4TimerActive = active
     if (!active) {
-      c4EndTime = 0
-    } else if (Number.isFinite(seconds) && seconds > 0) {
-      const nextEndTime = performance.now() + seconds * 1000
-      if (!c4EndTime || Math.abs(nextEndTime - c4EndTime) >= 250) c4EndTime = nextEndTime
+      clearC4Clock()
+    } else if (!c4ClockInitialized) {
+      if (nextDefuseActive) {
+        restoreC4Clock()
+      } else {
+        const seconds = bombSeconds > 0 ? bombSeconds : phaseSeconds
+        if (Number.isFinite(seconds) && seconds > 0) {
+          c4EndTime = performance.now() + seconds * 1000
+          c4ClockInitialized = true
+          saveC4Clock(seconds)
+        }
+      }
     }
+    // During defuse, both GSI countdown fields describe the defuse timer.
+    // The C4 bar always follows the deadline captured while the bomb was planted.
+    c4TimerActive = active && c4ClockInitialized
 
     defuseTimerActive = nextDefuseActive
     if (!nextDefuseActive) {

@@ -13,18 +13,18 @@ const DEFAULT_OVERTIME_MR = 3
 const ROUND_PULSE_MS = 240
 
 function secondToTime(totalSeconds: number) {
+  totalSeconds = Math.max(0, totalSeconds)
   const minutes = Math.floor(totalSeconds / 60)
   const seconds = Math.floor(totalSeconds % 60)
-  totalSeconds = Math.max(0, totalSeconds)
   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
 }
 
-const formattedTime = computed(() => {
-  let totalSeconds = props.gsi?.phase_countdowns.phase_ends_in
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = Math.floor(totalSeconds % 60)
-  totalSeconds = Math.max(0, totalSeconds)
-  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
+const formattedTime = computed(() => secondToTime(props.gsi?.phase_countdowns.phase_ends_in))
+
+const showBombIcon = computed(() => {
+  const phase = props.gsi?.phase_countdowns.phase
+  const bombState = props.gsi?.bomb?.state
+  return bombState !== 'defused' && bombState !== 'exploded' && (phase === 'bomb' || phase === 'defuse')
 })
 
 /**
@@ -95,10 +95,16 @@ onUnmounted(() => {
   <div
     class="flex-1 flex flex-col items-center justify-center bg-pri/70 ring-2 ring-sec/30 rounded-(--hai-radius)"
   >
-    <div v-if="gsi.phase_countdowns.phase !== 'bomb'" class="font-semibold text-2xl">
+    <div v-if="!showBombIcon" class="font-semibold text-2xl">
       {{ formattedTime }}
     </div>
-    <SvgIcon v-else size="32px" name="icon-ui-bomb_c4" />
+    <SvgIcon
+      v-else
+      size="32px"
+      name="icon-ui-bomb_c4"
+      custom-class-name="zhen-c4-icon"
+      :drop-shadow="false"
+    />
     <div class="flex flex-row items-center justify-center gap-1 text-sec/60">
       <div class="font-semibold text-xs">Round</div>
       <div

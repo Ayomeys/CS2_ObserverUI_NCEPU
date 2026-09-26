@@ -24,7 +24,6 @@ const PROGRESS_TRANSITION = 'width 300ms ease'
 const PROGRESS_DURATION = 320
 
 const CT_CALIBRATION_THRESHOLD = 0.12
-const T_CALIBRATION_THRESHOLD = 0.25
 
 /**
  * phase 进入这些状态时，如果进度条正在工作，则强制重置。
@@ -171,6 +170,7 @@ const ctBarController = createBarController(ctBar)
 const tBarController = createBarController(tBar)
 
 let isDefuseActive = false
+let bombClockInitialized = false
 
 const ct = {
   active: false,
@@ -300,6 +300,7 @@ function startTCountdown(mode: TProgressMode, seconds: number, animate = false):
 
   t.mode = mode
   t.maxTime = seconds
+  if (mode === 'planted') bombClockInitialized = false
 
   /**
    * 安装炸弹成功后，从 planting 进度过渡到 bomb 进度 100%。
@@ -330,6 +331,7 @@ function resetTProgress(): void {
   t.mode = 'idle'
   t.maxTime = MAX_TIMER.planting
   t.endTime = 0
+  bombClockInitialized = false
 
   tBarController.animateToFull(null)
   stopRafIfIdle()
@@ -374,33 +376,16 @@ function calibrateCt(phase?: PhaseSnapshot): void {
   }
 }
 
-function calibrateT(phase?: PhaseSnapshot): void {
-  if (props.team.side !== 'T') {
-    return
-  }
+function initializeBombClock(bomb?: Bomb | null): void {
+  if (props.team.side !== 'T' || t.mode !== 'planted' || bombClockInitialized) return
+  if (bomb?.state !== 'planted' || !isFinitePositive(bomb.countdown)) return
 
-  if (t.mode !== 'planted' || tBarController.isTransitioning()) {
-    return
-  }
-
-  if (!phase || phase.phase !== 'bomb') {
-    return
-  }
-
-  const seconds = Number(phase.phase_ends_in)
-
-  if (!Number.isFinite(seconds) || seconds <= 0) {
-    return
-  }
-
-  const currentRemaining = Math.max(0, (t.endTime - performance.now()) / 1000)
-
-  if (Math.abs(currentRemaining - seconds) >= T_CALIBRATION_THRESHOLD) {
-    t.endTime = performance.now() + seconds * 1000
-
-    renderT(performance.now())
-    ensureRaf()
-  }
+  // While planted, bomb.countdown is the C4 timer. Once defusing starts,
+  // GSI reuses countdown fields for the defuse timer, so never sync again.
+  t.endTime = performance.now() + Number(bomb.countdown) * 1000
+  bombClockInitialized = true
+  renderT(performance.now())
+  ensureRaf()
 }
 
 function handlePhaseChange(phase?: string): void {
@@ -461,7 +446,7 @@ function handleBombStateChange(state?: Bomb['state']): void {
  * 合并为一个 data watcher：
  * - phase 重置
  * - CT 拆包校准
- * - T 炸弹爆炸校准
+ * - T 炸弹倒计时只在安包后校准一次
  * - bomb.state 兜底重置
  */
 watch(
@@ -475,7 +460,7 @@ watch(
 
     handlePhaseChange(phase?.phase)
     calibrateCt(phase)
-    calibrateT(phase)
+    initializeBombClock(data.bomb)
     handleBombStateChange(data.bomb?.state)
   },
   { immediate: true },
@@ -514,7 +499,7 @@ useGsiEvent('bombPlantStop', () => {
 })
 
 useGsiEvent('bombPlant', () => {
-  if (props.team.side !== 'T') {
+  if (props.team.side !== 'T' || t.mode === 'planted') {
     return
   }
 
