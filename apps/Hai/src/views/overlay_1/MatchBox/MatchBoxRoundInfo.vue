@@ -19,7 +19,12 @@ function secondToTime(totalSeconds: number) {
   return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
 }
 
-const formattedTime = computed(() => secondToTime(props.gsi?.phase_countdowns.phase_ends_in))
+const formattedTime = computed(() => {
+  const countdown = props.gsi?.phase_countdowns
+  if (countdown?.phase === 'timeout_ct' || countdown?.phase === 'timeout_t') return 'TAC'
+  if (countdown?.phase === 'paused') return 'TECH'
+  return secondToTime(countdown?.phase_ends_in ?? 0)
+})
 
 const showBombIcon = computed(() => {
   const phase = props.gsi?.phase_countdowns.phase
@@ -44,24 +49,15 @@ const currentRound = computed(() => {
 const regulationMR = computed(() => props.gsi?.map?.regularMR ?? DEFAULT_REGULATION_MR)
 const overtimeMR = computed(() => props.gsi?.map?.overtimeMR ?? DEFAULT_OVERTIME_MR)
 
-/**
- * 常规 2 * regulationMR 回合；进入加时后按 2 * overtimeMR 一段递增。
- */
-const totalRounds = computed(() => {
-  const regulationRounds = regulationMR.value * 2
-  const round = currentRound.value
-
-  if (round <= regulationRounds) {
-    return regulationRounds
-  }
-
-  const overtimeRounds = Math.max(1, overtimeMR.value) * 2
-  const overtimes = Math.ceil((round - regulationRounds) / overtimeRounds)
-
-  return regulationRounds + overtimes * overtimeRounds
-})
-
 const isOvertime = computed(() => currentRound.value > regulationMR.value * 2)
+const overtimeRounds = computed(() => Math.max(1, overtimeMR.value) * 2)
+
+/** 从总回合数推算当前加时段内的回合数，每次加时重新从 1 开始。 */
+const displayedRound = computed(() => {
+  if (!isOvertime.value) return currentRound.value
+  return ((currentRound.value - regulationMR.value * 2 - 1) % overtimeRounds.value) + 1
+})
+const totalRounds = computed(() => isOvertime.value ? overtimeRounds.value : regulationMR.value * 2)
 
 /**
  * roundStart 只用来触发数字切换动画；数值仍然是上面的派生计算结果，
@@ -105,25 +101,35 @@ onUnmounted(() => {
       custom-class-name="zhen-c4-icon"
       :drop-shadow="false"
     />
-    <div class="flex flex-row items-center justify-center gap-1 text-sec/60">
-      <div class="font-semibold text-xs">Round</div>
+    <div
+      class="round-label flex flex-row items-center justify-center gap-1 text-sec/60"
+      :class="{ 'is-overtime': isOvertime }"
+    >
+      <div class="font-semibold text-xs">{{ isOvertime ? 'Overtime' : 'Round' }}</div>
       <div
         class="round-counter font-semibold text-xs transition-transform duration-200 ease-out"
         :class="{ 'scale-110': roundPulse }"
       >
-        {{ currentRound }}/{{ totalRounds }}
-      </div>
-      <div
-        v-if="isOvertime"
-        class="rounded-sm bg-sec/20 px-1 text-[10px] font-bold leading-4 text-sec/80"
-      >
-        OT
+        {{ displayedRound }}/{{ totalRounds }}
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.round-label {
+  max-width: calc(100% - 8px);
+  white-space: nowrap;
+}
+
+.round-label.is-overtime {
+  text-transform: none;
+}
+
+.round-label.is-overtime > div {
+  font-size: 11px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .round-counter {
     transition: none;

@@ -1,6 +1,6 @@
 {
   "name": "@zhenhai/zhen",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "An Electron application with Vue and TypeScript",
   "homepage": "https://electron-vite.org",

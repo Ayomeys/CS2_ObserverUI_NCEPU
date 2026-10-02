@@ -734,8 +734,7 @@
   transform-origin: center;
 }
 
-.zhen-timeout-overlay.is-ct .zhen-timeout-panel,
-.zhen-timeout-overlay.is-tech .zhen-timeout-panel {
+.zhen-timeout-overlay.is-ct .zhen-timeout-panel {
   border-color: #008cff;
   box-shadow: 0 0 14px rgba(0, 140, 255, 0.34), 0 10px 24px rgba(0, 0, 0, 0.4);
 }
@@ -743,6 +742,20 @@
 .zhen-timeout-overlay.is-t .zhen-timeout-panel {
   border-color: #e1b600;
   box-shadow: 0 0 14px rgba(225, 182, 0, 0.34), 0 10px 24px rgba(0, 0, 0, 0.4);
+}
+
+.zhen-timeout-overlay.is-tech .zhen-timeout-panel {
+  border-color: #c5cbd3;
+  box-shadow: 0 0 14px rgba(197, 203, 211, 0.2), 0 10px 24px rgba(0, 0, 0, 0.4);
+}
+
+.zhen-timeout-overlay.is-ct,
+.zhen-timeout-overlay.is-t {
+  height: 88px;
+}
+
+.zhen-timeout-overlay [hidden] {
+  display: none;
 }
 
 .zhen-timeout-overlay.is-active .zhen-timeout-panel {
@@ -776,6 +789,17 @@
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.04em;
+}
+
+.zhen-timeout-copy--remaining {
+  opacity: 1;
+  margin-top: 7px;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
 }
 
 .zhen-timeout-character {
@@ -1050,6 +1074,11 @@
   color: rgba(255, 255, 255, 0.58) !important;
   letter-spacing: 0.04em !important;
   text-transform: uppercase;
+}
+
+.unified-match-round__label.is-overtime {
+  letter-spacing: 0 !important;
+  text-transform: none;
 }
 
 .zhen-c4-countdown {

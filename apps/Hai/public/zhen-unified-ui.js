@@ -12,7 +12,6 @@
   const DEFUSE_KIT_SECONDS = 5
   const DEFUSE_NO_KIT_SECONDS = 10
   const TIMEOUT_FALLBACK_SECONDS = 30
-  const TECH_PAUSE_SECONDS = 60
   const TIMEOUT_PANEL_MS = 700
   const TIMEOUT_TEXT_DELAY_MS = 500
   const TIMEOUT_TEXT_MS = 220
@@ -130,6 +129,23 @@
     )
   }
 
+  function timeoutRemainingText(gsi, side, eventTeam, preferEventTeam = false) {
+    const map = gsi && gsi.map
+    const team = side === 'ct' ? map && map.team_ct : map && map.team_t
+    const remainingValue = preferEventTeam && eventTeam
+      ? eventTeam.timeouts_remaining
+      : team && team.timeouts_remaining != null ? team.timeouts_remaining : eventTeam && eventTeam.timeouts_remaining
+    const remaining = remainingValue != null && remainingValue !== '' ? Number(remainingValue) : NaN
+    const regularMR = Number(map && map.regularMR) || 12
+    // map.round 从 0 开始；第一个加时回合为 2 * regularMR。
+    const overtime = Number(map && map.round) >= regularMR * 2
+      || Number(map && map.team_ct && map.team_ct.score) >= regularMR
+        && Number(map && map.team_t && map.team_t.score) >= regularMR
+    const limit = overtime ? 1 : 3
+    const count = Number.isInteger(remaining) && remaining >= 0 ? remaining : '—'
+    return `TIMEOUTS LEFT ${count}/${limit}`
+  }
+
   function timeoutCharacterTime(index, total, rowDelay = 0) {
     if (total <= 1) return TIMEOUT_TEXT_DELAY_MS + rowDelay
     const progress = index / (total - 1)
@@ -164,6 +180,7 @@
       '<div class="zhen-timeout-panel">',
       '<div class="zhen-timeout-copy zhen-timeout-copy--title"></div>',
       '<div class="zhen-timeout-copy zhen-timeout-copy--team"></div>',
+      '<div class="zhen-timeout-copy zhen-timeout-copy--remaining"></div>',
       '</div>',
       '<div class="zhen-timeout-clock">',
       '<svg viewBox="0 0 60 60" aria-hidden="true">',
@@ -183,7 +200,7 @@
 
   function renderTacticalTimeoutFrame() {
     tacticalTimeoutFrameId = null
-    if (!tacticalTimeoutSide) return
+    if (!tacticalTimeoutSide || tacticalTimeoutSide === 'tech') return
 
     const root = document.querySelector('.unified-matchbar')
     const overlay = root && ensureTacticalTimeout(root)
@@ -200,7 +217,7 @@
     tacticalTimeoutFrameId = requestAnimationFrame(renderTacticalTimeoutFrame)
   }
 
-  function startTacticalTimeout(gsi, side, seconds, eventTeam = null) {
+  function startTacticalTimeout(gsi, side, seconds, eventTeam = null, preferEventTeam = false) {
     const root = document.querySelector('.unified-matchbar')
     if (!root) return
     const overlay = ensureTacticalTimeout(root)
@@ -215,8 +232,8 @@
     if (isNewTimeout) {
       tacticalTimeoutSide = side
       tacticalTimeoutMaxSeconds = seconds > 0 ? seconds : TIMEOUT_FALLBACK_SECONDS
-      fillTimeoutText(overlay.querySelector('.zhen-timeout-copy--title'), side === 'tech' ? 'MATCH PAUSE' : 'TAC TIMEOUT')
-      fillTimeoutText(overlay.querySelector('.zhen-timeout-copy--team'), side === 'tech' ? 'TACTICAL TIMEOUT' : timeoutTeamName(gsi, side, eventTeam), TIMEOUT_TEXT_MS)
+      fillTimeoutText(overlay.querySelector('.zhen-timeout-copy--title'), side === 'tech' ? 'TECHNICAL PAUSE' : 'TAC TIMEOUT')
+      fillTimeoutText(overlay.querySelector('.zhen-timeout-copy--team'), side === 'tech' ? '' : timeoutTeamName(gsi, side, eventTeam), TIMEOUT_TEXT_MS)
       overlay.classList.remove('is-active', 'is-leaving', 'is-ct', 'is-t', 'is-tech')
       void overlay.offsetWidth
       overlay.classList.add('is-active', `is-${side}`)
@@ -224,6 +241,24 @@
       tacticalTimeoutMaxSeconds = seconds
     }
 
+    const isTechnical = side === 'tech'
+    overlay.querySelector('.zhen-timeout-clock').hidden = isTechnical
+    overlay.querySelector('.zhen-timeout-copy--team').hidden = isTechnical
+    const counter = overlay.querySelector('.zhen-timeout-copy--remaining')
+    counter.hidden = isTechnical
+    if (isTechnical) {
+      tacticalTimeoutEndTime = 0
+      if (tacticalTimeoutFrameId !== null) cancelAnimationFrame(tacticalTimeoutFrameId)
+      tacticalTimeoutFrameId = null
+      return
+    }
+
+    const counterText = timeoutRemainingText(gsi, side, eventTeam, preferEventTeam)
+    if (isNewTimeout || counter.dataset.value !== counterText) {
+      // 次数必须始终完整可见，不使用默认透明的逐字动画。
+      counter.textContent = counterText
+      counter.dataset.value = counterText
+    }
     if (seconds >= 0) tacticalTimeoutEndTime = performance.now() + seconds * 1000
     if (tacticalTimeoutFrameId === null) tacticalTimeoutFrameId = requestAnimationFrame(renderTacticalTimeoutFrame)
   }
@@ -247,7 +282,21 @@
   }
 
   function updateTacticalTimeout(gsi) {
+    const phase = String(gsi && gsi.phase_countdowns && gsi.phase_countdowns.phase || '').toLowerCase()
+    if (phase === 'paused') {
+      technicalPauseLatched = true
+      tacticalTimeoutEventLatched = false
+      tacticalTimeoutEventTeam = null
+      startTacticalTimeout(gsi, 'tech', 0)
+      return
+    }
     const side = timeoutPhaseSide(gsi)
+    if (phase && !side) {
+      technicalPauseLatched = false
+      tacticalTimeoutEventLatched = false
+      tacticalTimeoutEventTeam = null
+    }
+    if (side) technicalPauseLatched = false
     if (!side) {
       if (tacticalTimeoutEventLatched && tacticalTimeoutSide) {
         const rawSeconds = Number(gsi && gsi.phase_countdowns && gsi.phase_countdowns.phase_ends_in)
@@ -259,8 +308,7 @@
         return
       }
       if (technicalPauseLatched && tacticalTimeoutSide === 'tech') {
-        const seconds = Math.max(0, (tacticalTimeoutEndTime - performance.now()) / 1000)
-        startTacticalTimeout(gsi, 'tech', seconds)
+        startTacticalTimeout(gsi, 'tech', 0)
         return
       }
       stopTacticalTimeout()
@@ -284,7 +332,7 @@
     const seconds = Number.isFinite(rawSeconds) && rawSeconds > 0
       ? rawSeconds
       : TIMEOUT_FALLBACK_SECONDS
-    startTacticalTimeout(gsi, side, seconds, team)
+    startTacticalTimeout(gsi, side, seconds, team, true)
   }
 
   function stopTacticalTimeoutFromEvent() {
@@ -294,10 +342,10 @@
   }
 
   function startTechnicalPauseFromEvent() {
-    if (tacticalTimeoutEventLatched || timeoutPhaseSide(latestGsi || {})) return
-
     technicalPauseLatched = true
-    startTacticalTimeout(latestGsi || {}, 'tech', TECH_PAUSE_SECONDS)
+    tacticalTimeoutEventLatched = false
+    tacticalTimeoutEventTeam = null
+    startTacticalTimeout(latestGsi || {}, 'tech', 0)
   }
 
   function stopTechnicalPauseFromEvent() {
